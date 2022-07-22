@@ -1,4 +1,4 @@
-CC=gcc
+CC=clang
 CLIENT_BIN=client
 SERVER_BIN=server
 
