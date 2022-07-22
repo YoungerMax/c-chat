@@ -1,6 +1,10 @@
 # VS Code
 .vscode
 
+# Binaries
+client
+server
+
 # Prerequisites
 *.d
 
