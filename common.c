@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <string.h>
 
 //#define uint16_t unsigned short // dumb fix for now because max value of short is 65535
 
@@ -20,6 +21,13 @@ typedef struct
     const char* content;
 } Message;
 
+typedef struct
+{
+    struct sockaddr addy;
+    struct sockaddr_in addy_in;
+    const char* host;
+    socklen_t addysize;
+} Address;
 
 int create_socket()
 {
@@ -29,7 +37,7 @@ int create_socket()
     // insns.
     // init socket.
     if (0 > (sfd = socket(AF_INET, SOCK_STREAM, 0))) {
-        return -1;
+        return sfd;  // return the error code
     }
     
     // enable address reuse.
@@ -38,7 +46,7 @@ int create_socket()
     return sfd;
 }
 
-struct sockaddr create_addy(const char* host, in_port_t port, sa_family_t family)
+Address create_addy(const char* host, in_port_t port, sa_family_t family)
 {
     // vars.
     struct sockaddr_in addy = {
@@ -51,10 +59,17 @@ struct sockaddr create_addy(const char* host, in_port_t port, sa_family_t family
     if (0 > inet_pton(AF_INET, host, &addy.sin_addr)) {
         printf("debug :: bad addy\n");
     }
+    
+    // vars.
+    Address address = {
+        .addy = *((struct sockaddr*) &addy),  // hack for casting to sockaddr.
+        .addy_in = addy,
+        .host = host
+    };
 
-    // hack to cast struct.
-    struct sockaddr ret = *((struct sockaddr*) &addy);
-    return ret;
+    address.addysize = sizeof(address.addy);
+
+    return address;
 }
 
 pthread_t create_thread(void*(*func)(void*), pthread_t thread_arr[], size_t arr_size)

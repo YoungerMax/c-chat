@@ -2,7 +2,7 @@
 #include "common.c"
 
 // decl.
-int create_server_socket(struct sockaddr* addy);
+int create_server_socket(Address *addy);
 
 // defn.
 int main()
@@ -10,46 +10,37 @@ int main()
     //TODO: configuration file
     // vars.
     int sfd;
-    struct sockaddr addy = create_addy("127.0.0.1", 12345, AF_INET);
-    socklen_t addysize = sizeof(addy);
+    Address addy = create_addy("127.0.0.1", 12345, AF_INET);  // temp.
 
     // insns.
     // create socket.
     if (0 > (sfd = create_server_socket(&addy))) {
-        printf("error: could not create & bind socket");
-        return -1;
+        return sfd;  // this will return an error code
     }
 
     // listen for conns.
     listen(sfd, 5);
 
-    // a loop. yes, this is a  ̶w̶h̶i̶l̶e̶ for loop. :)
-    inet_pton(AF_INET, )
-    printf("Hosted on %s\n", )
+    // a loop. yes, this is a w̶h̶i̶l̶e̶ for loop. :)
+    printf("Hosted on %s\n", addy.host);
 
     for (;;) {
-        int cfd = accept(sfd, &addy, &addysize);
+        // accept the new connection.
+        int cfd = accept(sfd, &addy.addy, &addy.addysize);
 
-        // temp.
-        struct sockaddr_in c_addy;
-        getpeername(cfd, (struct sockaddr*) &c_addy, &addysize);
-
-        char str[INET_ADDRSTRLEN];
-        inet_ntop(AF_INET, &c_addy.sin_addr, str, INET_ADDRSTRLEN);
-        printf(str);
-
+        // send a message to the client.
         Message message = {
             .content = "hello from the server! :)"
         };
 
-        send(cfd, message, sizeof(message), 0);
-        // int __fd, const void *__buf, size_t __n, int __flags
+        send(cfd, message.content, strlen(message.content), 0);
 
+        // dc the client.
         close(cfd);
     }
 }
 
-int create_server_socket(struct sockaddr* addy)
+int create_server_socket(Address *addy)
 {
     // vars.
     int sfd;
@@ -57,11 +48,11 @@ int create_server_socket(struct sockaddr* addy)
     // insns.
     // create socket.
     if (0 > (sfd = create_socket())) {
-        return sfd;
+        return sfd;  // this will return an error code
     }
 
     // bind.
-    bind(sfd, addy, sizeof(addy));
+    bind(sfd, &addy->addy, addy->addysize);
     
     return sfd;
 }
