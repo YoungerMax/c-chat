@@ -6,13 +6,14 @@ int create_server_socket(Address *addy);
 
 void send_message(void* data)
 {
-    int cfd = *((int*) data);
+    struct arg_struct* args = data;
+    
     const char* message = "message from the server";
 
     for (;;)
     {
         printf("hello from server loop");
-        send(cfd, message, strlen(message), 0);
+        send(args->fd, message, strlen(message), 0);
         sleep(1);
     }
 }
@@ -40,18 +41,20 @@ int main()
     const unsigned int max_threads = 2;
     pthread_t threadarr[max_threads];
 
+    
+
     for (;;) {
         // accept the new connection.
         int cfd = accept(sfd, &addy.addy, &addy.addysize);
 
-        // send a message to the client.
-        // Message message = {
-        //     .content = "hello from the server! :)"
-        // };
+        args = malloc(sizeof(struct arg_struct) * 1);
+        args->fd = cfd;
 
-        pthread_t sendthread = create_thread(send_message, &cfd, threadarr, max_threads);
-
+        pthread_t sendthread = create_thread(send_message, args, threadarr, max_threads);
+        
+        free(args);
         // dc the client.
+        sleep(10);
         close(cfd);
     }
 
