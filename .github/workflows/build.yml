@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+        
       - name: Install compiler
         run: sudo apt install gcc
       
@@ -24,6 +27,9 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 5
     steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+        
       - name: Install compiler
         run: brew install gcc
       
@@ -38,6 +44,9 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 5
     steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+        
       - name: Install compiler
         run: choco install mingw
       
