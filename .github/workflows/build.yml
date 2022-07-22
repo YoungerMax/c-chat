@@ -1,0 +1,48 @@
+name: Build
+
+on:
+  push:
+  release:
+
+jobs:
+  build-linux:
+    name: Build (Linux)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Install compiler
+        run: sudo apt install gcc
+      
+      - name: Install make
+        run: sudo apt install make
+
+      - name: Build
+        run: make clean build
+  
+  build-mac:
+    name: Build (macOS)
+    runs-on: macos-latest
+    timeout-minutes: 5
+    steps:
+      - name: Install compiler
+        run: brew install gcc
+      
+      - name: Install make
+        run: brew install make
+
+      - name: Build
+        run: make clean build
+  
+  build-windows:
+    name: Build (Windows)
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - name: Install compiler
+        run: choco install mingw
+      
+      - name: Install make
+        run: choco install make
+
+      - name: Build
+        run: make clean build
