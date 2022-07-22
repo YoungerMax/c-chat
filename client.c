@@ -3,6 +3,23 @@
 
 // decl.
 
+void receive_message(void* data)
+{
+    int cfd = *((int*)data);
+    const unsigned int bufsize = 1024;
+    char buf[bufsize];
+
+    for (;;)
+    {
+        ssize_t bytesread = read(cfd, buf, bufsize);
+
+        for (int i = 0; sizeof(buf) > i; i++)
+        {
+            printf("%c", buf[i]);
+        }
+    }
+}
+
 // defn.
 int main()
 {
@@ -17,18 +34,30 @@ int main()
 
     //TODO: figure out a way to do this
     // receive a message from the server.
-    char buf[1024] = {};
-    ssize_t bytesread = read(cfd, buf, 1024);
+    // char buf[1024] = {};
+    // ssize_t bytesread = read(cfd, buf, 1024);
 
-    // print out the received message.
-    for (int i = 0; sizeof(buf) > i; i++) {
-        printf("%c", buf[i]);
-    }
+    // // print out the received message.
+    // for (int i = 0; sizeof(buf) > i; i++) {
+    //     printf("%c", buf[i]);
+    // }
+
+    const unsigned int max_threads = 2;
+    pthread_t threads[max_threads];
+
+    args = malloc(sizeof(struct arg_struct) * 1);
+    args->fd = cfd;
+
+    printf("after allocation");
+
+    pthread_t recthread = create_thread(receive_message, args, threads, max_threads);
+
+    scanf("waiting");
 
     printf("\n");
 
-
     close(cfd);
-
+    clean_threads(threads, max_threads);
+    
     return 0;
 }

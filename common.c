@@ -29,6 +29,11 @@ typedef struct
     socklen_t addysize;
 } Address;
 
+struct arg_struct
+{
+    int fd;
+} *args;
+
 int create_socket()
 {
     // vars.
@@ -72,12 +77,12 @@ Address create_addy(const char* host, in_port_t port, sa_family_t family)
     return address;
 }
 
-pthread_t create_thread(void*(*func)(void*), pthread_t thread_arr[], size_t arr_size)
+pthread_t create_thread(void*(*func)(void*), void* args, pthread_t thread_arr[], size_t arr_size)
 {
     pthread_t thread;
     int err;
 
-    err = pthread_create(&thread, NULL, func, NULL);
+    err = pthread_create(&thread, NULL, func, args);
     if (err)
     {
         printf("thread creation error");
