@@ -13,7 +13,9 @@
 #include <pthread.h>
 #include <unistd.h>
 
-#elif defined(_WIN32) || defined(_WIN64)
+#endif
+
+#if defined(_WIN32) || defined(_WIN64)
 
 #define WINDOWS
 
@@ -26,7 +28,9 @@
 void sleep(unsigned int seconds) { Sleep(seconds * 1000); }
 int read(int fd, char* buf, int length) { return recv(fd, buf, length, 0); }
 
-#elif defined(__APPLE__)
+#endif
+
+#ifdef __APPLE__
 
 #define MACOS
 
