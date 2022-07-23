@@ -11,7 +11,7 @@ A cross platform chat room fully implemented in C
 
 ### 2. Compile & run
 
-|      How do I...     | Linux & macOS  | Windows                      |
+|      How do I...     | GNU Make       | NMake                        |
 |----------------------|----------------|------------------------------|
 | Compile Server       | make server    | nmake /f NMakefile server    |
 | Compile Client       | make client    | nmake /f NMakefile client    |
