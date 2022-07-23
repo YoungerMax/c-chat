@@ -57,7 +57,7 @@ typedef struct
     struct sockaddr addy;
     struct sockaddr_in addy_in;
     const char* host;
-    int addysize;
+    unsigned int addysize;
 } Address;
 
 typedef struct
@@ -65,6 +65,7 @@ typedef struct
     void (*target)(void*);
     void* args;
     void* native;
+    unsigned long threadId;
 } Thread;
 
 struct arg_struct
@@ -119,14 +120,13 @@ Address create_addy(const char* host, int port, int family)
 
 Thread create_thread(void*(*func)(void*), void* args, Thread thread_arr[], size_t arr_size)
 {
-    Thread thread
-    int err;
+    Thread thread;
 
-    err = pthread_create(&thread, NULL, func, args);
-    if (err)
+    if (0 > pthread_create(&thread.threadId, NULL, func, args))
     {
         printf("thread creation error");
-        return -1;
+        Thread err;
+        return err;
     }
 
     //TODO: make this safe
@@ -139,7 +139,7 @@ void clean_threads(Thread thread_arr[], size_t arr_size)
 {
     for (int i = 0; i < arr_size; i++)
     {
-        pthread_join(thread_arr[i], NULL);
+        pthread_join(*((pthread_t*) thread_arr[i].native), NULL);
     }
 }
 
@@ -207,7 +207,7 @@ Thread create_thread(void (*func)(void*), void* args, Thread thread_arr[], size_
         .target = func
     };
     
-    HANDLE threadHandle = CreateThread(NULL, 0, win_thread_target, &thread, 0, NULL);
+    HANDLE threadHandle = CreateThread(NULL, 0, win_thread_target, &thread, 0, &thread.threadId);
     thread.native = (void*)&threadHandle;
 
     thread_arr[arr_size + 1] = thread;
