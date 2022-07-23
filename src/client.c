@@ -14,12 +14,14 @@ void* receive_message(void* data)
     for (;;)
     {
         int bytesread = read(args->fd, buf, bufsize);
-
-        for (int i = 0; sizeof(buf) > i; i++)
+        
+        for (int i = 0; bytesread > i; i++)
         {
             printf("%c", buf[i]);
         }
     }
+
+    return 0; // clang gives warnings if you don't return anything
 }
 
 void* send_message(void* data)
@@ -28,6 +30,8 @@ void* send_message(void* data)
     const char* message = "message from the client";
 
     send(args->fd, message, strlen(message), 0);
+
+    return 0; // clang gives warnings if you don't return anything
 }
 
 // defn.

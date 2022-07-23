@@ -74,6 +74,8 @@ void* send_message(void* data)
     const char* message = "message from the server";
 
     send(args->fd, message, strlen(message), 0);
+
+    return 0; // clang gives warnings if you don't return anything
 }
 
 void* receive_message(void* data)
@@ -90,4 +92,6 @@ void* receive_message(void* data)
     printf("\ntotoal read bytes: %d\n", bytesread); // how long until this typo is noticed?
 
     send_message(data);
+
+    return 0; // clang gives warnings if you don't return anything
 }
