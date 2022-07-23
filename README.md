@@ -6,12 +6,12 @@ A cross platform chat room fully implemented in C
 ### 1. Prerequisites
 
 - a C compiler
-- GNU make (Linux/macOS) or NMake (Windows)
+- GNU make
 
 
 ### 2. Compile & run
 
-|      How do I...     | Command        |
+|      How do I...     | GNU Make       |
 |----------------------|----------------|
 | Compile Server       | make server    |
 | Compile Client       | make client    |

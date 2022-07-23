@@ -1,10 +1,20 @@
-# Default to unix args
 CC=gcc
-CC_ARGS=-std=c17 -pthread
-CLIENT_BIN=client
-SERVER_BIN=server
-RM_CMD=rm
-RUN_PREFIX=./
+
+ifeq ($(OS), Windows_NT)
+	# Windows args
+	CC_ARGS=-std=c17 -lws2_32
+	CLIENT_BIN=client.exe
+	SERVER_BIN=server.exe
+	RM_CMD=del
+	RUN_PREFIX=
+else
+	# Unix args
+	CC_ARGS=-std=c17 -pthread
+	CLIENT_BIN=client
+	SERVER_BIN=server
+	RM_CMD=rm
+	RUN_PREFIX=./
+endif
 
 build: client server
 clean: cleanclient cleanserver
