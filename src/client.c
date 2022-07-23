@@ -8,12 +8,12 @@ const unsigned int max_threads = 2;
 
 void* receive_message(void* data)
 {
-    struct arg_struct* args = data;
+    struct recv_args* args = data;
     char buf[bufsize];
 
     for (;;)
     {
-        int bytesread = read(args->fd, buf, bufsize);
+        int bytesread = read(r_args->fd, buf, bufsize);
         
         for (int i = 0; bytesread > i; i++)
         {
@@ -26,10 +26,10 @@ void* receive_message(void* data)
 
 void* send_message(void* data)
 {
-    struct arg_struct* args = data;
+    struct recv_args* r_args = data;
     const char* message = "message from the client";
 
-    send(args->fd, message, strlen(message), 0);
+    send(r_args->fd, message, strlen(message), 0);
 
     return 0; // clang gives warnings if you don't return anything
 }
@@ -50,16 +50,16 @@ int main()
 
     Thread thread_arr[max_threads];
 
-    args = malloc(sizeof(struct arg_struct) * 1);
-    args->fd = cfd;
+    r_args = malloc(sizeof(struct recv_args) * 1);
+    r_args->fd = cfd;
 
-    Thread rec_thread = create_thread(receive_message, args, thread_arr, max_threads);
+    Thread rec_thread = create_thread(receive_message, r_args, thread_arr, max_threads);
 
-    send_message(args);
+    send_message(r_args);
 
     sleep(20); // obviously a placeholder, segmentation fault afterwards
 
-    free(args);
+    free(r_args);
     close(cfd);
     clean_threads(thread_arr, max_threads);
     

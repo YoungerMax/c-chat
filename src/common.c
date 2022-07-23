@@ -1,11 +1,14 @@
 // OS-Specific defns.
 #ifdef __linux__ 
+// OS is Linux
 #define LINUX
 
 #elif defined(__APPLE__)
+// OS is macOS
 #define MACOS
 
 #elif defined(_WIN32) || defined(_WIN64)
+// OS is Windows
 #define WINDOWS
 
 // Windows incl.
@@ -73,10 +76,10 @@ typedef struct
     thread_id_t threadId;
 } Thread;
 
-struct arg_struct
+struct recv_args
 {
     int fd;
-} *args;
+} *r_args;
 
 #if defined(LINUX) || defined(MACOS)
 
