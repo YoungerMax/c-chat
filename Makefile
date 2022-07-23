@@ -37,4 +37,4 @@ runserver: cleanserver server
 	$(RUN_PREFIX)$(SERVER_BIN)
 
 cleanserver:
-	-$(RM_CMD)$(SERVER_BIN)
+	-$(RM_CMD) $(SERVER_BIN)
