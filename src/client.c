@@ -42,10 +42,7 @@ int main()
         return -1;
     }
 
-    // send message to server
-
-    // const char* message = "test message from client";
-    // send(cfd, message, strlen(message), 0);
+    printf("Connected to %s:%d\n", addy.host, addy.addy_in.sin_port);
 
     Thread thread_arr[max_threads];
 
@@ -55,9 +52,8 @@ int main()
     Thread rec_thread = create_thread(receive_message, args, thread_arr, max_threads);
 
     send_message(args);
-    send_message(args);
 
-    sleep(10); // obviously a placeholder, segmentation fault afterwards
+    sleep(20); // obviously a placeholder, segmentation fault afterwards
 
     free(args);
     close(cfd);

@@ -25,11 +25,12 @@ int main()
     // listen for conns.
     listen(sfd, 5);
 
-    // a loop. yes, this is a w̶h̶i̶l̶e̶ for loop. :)
-    printf("Hosted on %s\n", addy.host);
+    printf("Hosted on %s:%d\n", addy.host, addy.addy_in.sin_port);
 
     Thread thread_arr[max_threads];
 
+    // a loop. yes, this is a w̶h̶i̶l̶e̶ for loop. :)
+    //TODO: make different tasks split up across different loops in different threads rather than one big loop
     for (;;) {
         // accept the new connection.
         int cfd = accept(sfd, &addy.addy, &addy.addysize);
@@ -38,7 +39,7 @@ int main()
         args = malloc(sizeof(struct arg_struct) * 1);
         args->fd = cfd;
 
-        Thread send_thread = create_thread(receive_message, args, thread_arr, max_threads);
+        Thread rec_thread = create_thread(receive_message, args, thread_arr, max_threads);
 
         // dc the client.
         close(cfd);

@@ -21,7 +21,7 @@ clean: cleanclient cleanserver
 
 # client
 client:
-	$(CC) client.c -o $(CLIENT_BIN) $(CC_ARGS)
+	$(CC) src/client.c -o $(CLIENT_BIN) $(CC_ARGS)
 
 runclient: cleanclient client
 	$(RUN_PREFIX)$(CLIENT_BIN)
@@ -31,7 +31,7 @@ cleanclient:
 
 # server
 server:
-	$(CC) server.c -o $(SERVER_BIN) $(CC_ARGS)
+	$(CC) src/server.c -o $(SERVER_BIN) $(CC_ARGS)
 
 runserver: cleanserver server
 	$(RUN_PREFIX)$(SERVER_BIN)
