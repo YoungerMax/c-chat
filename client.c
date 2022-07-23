@@ -1,17 +1,18 @@
 // incl.
 #include "common.c"
+#include "config.h"
 
 // decl.
+const unsigned int max_threads = 2;
 
 void receive_message(void* data)
 {
     struct arg_struct* args = data;
-    const unsigned int bufsize = 1024;
     char buf[bufsize];
 
     for (;;)
     {
-        ssize_t bytesread = read(args->fd, buf, bufsize);
+        int bytesread = read(args->fd, buf, bufsize);
 
         for (int i = 0; sizeof(buf) > i; i++)
         {
@@ -32,19 +33,18 @@ int main()
         return -1;
     }
 
-    const unsigned int max_threads = 2;
-    pthread_t threads[max_threads];
+    Thread threads[max_threads];
 
     args = malloc(sizeof(struct arg_struct) * 1);
     args->fd = cfd;
 
     printf("after allocation");
 
-    pthread_t recthread = create_thread(receive_message, args, threads, max_threads);
+    Thread recthread = create_thread(receive_message, args, threads, max_threads);
     
     free(args);
 
-    scanf("waiting");
+    scanf_s("waiting");
 
     printf("\n");
 
