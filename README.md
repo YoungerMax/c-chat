@@ -5,7 +5,7 @@ A cross platform chat room fully implemented in C
 
 ### 1. Prerequisites
 
-- - a C compiler
+- a C compiler
 - GNU make (Linux/macOS) or NMake (Windows)
 
 
