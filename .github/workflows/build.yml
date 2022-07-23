@@ -49,9 +49,6 @@ jobs:
         
       - name: Install compiler
         run: choco install mingw
-      
-      - name: Install make
-        run: choco install make
 
       - name: Build
-        run: make clean build
+        run: nmake /f NMakefile clean build
