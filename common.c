@@ -24,6 +24,7 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 #elif defined(WINDOWS)
 
@@ -39,7 +40,7 @@ int read(int fd, char* buf, int length) { return recv(fd, buf, length, 0); }
 
 //#define uint16_t unsigned short // dumb fix for now because max value of short is 65535
 
-const unsigned int bufsize = 1024;
+const unsigned int bufsize = 2048; // this runs out quick, error "broken pipe"
 
 typedef struct
 {
@@ -121,16 +122,24 @@ Address create_addy(const char* host, int port, int family)
 Thread create_thread(void*(*func)(void*), void* args, Thread thread_arr[], size_t arr_size)
 {
     Thread thread;
+    pthread_t thread_id;
 
-    if (0 > pthread_create(&thread.threadId, NULL, func, args))
+    int err = pthread_create(&thread_id, NULL, func, args);
+
+    if (err != 0)
     {
         printf("thread creation error");
         Thread err;
         return err;
+        
+        //TODO: proper error handling
     }
+
+    thread.threadId = thread_id;
 
     //TODO: make this safe
     thread_arr[arr_size + 1] = thread;
+    printf("thread %d created\n", arr_size+1);
 
     return thread;
 }

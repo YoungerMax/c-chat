@@ -1,11 +1,12 @@
 // incl.
+
 #include "common.c"
 #include "config.h"
 
 // decl.
 const unsigned int max_threads = 2;
 
-void receive_message(void* data)
+void* receive_message(void* data)
 {
     struct arg_struct* args = data;
     char buf[bufsize];
@@ -21,11 +22,19 @@ void receive_message(void* data)
     }
 }
 
+void* send_message(void* data)
+{
+    struct arg_struct* args = data;
+    const char* message = "message from the client";
+
+    send(args->fd, message, strlen(message), 0);
+}
+
 // defn.
 int main()
 {
     int cfd = create_socket();
-    Address addy = create_addy("127.0.0.1", 12345, AF_INET);  // connect to address
+    Address addy = create_addy(host, port, AF_INET);  // connect to address
 
     // connect to the server.
     if (0 > connect(cfd, &addy.addy, addy.addysize))
@@ -34,10 +43,25 @@ int main()
     }
 
     // send message to server
-    const char* buf = "hello from the client! :)";
-    send(cfd, buf, strlen(buf), 0);
 
+    // const char* message = "test message from client";
+    // send(cfd, message, strlen(message), 0);
+
+    Thread thread_arr[max_threads];
+
+    args = malloc(sizeof(struct arg_struct) * 1);
+    args->fd = cfd;
+
+    Thread rec_thread = create_thread(receive_message, args, thread_arr, max_threads);
+
+    send_message(args);
+    send_message(args);
+
+    sleep(10); // obviously a placeholder, segmentation fault afterwards
+
+    free(args);
     close(cfd);
+    clean_threads(thread_arr, max_threads);
     
     return 0;
 }

@@ -6,12 +6,12 @@
 const unsigned int max_threads = 10;
 
 int create_server_socket(Address *addy);
-void send_message(void* data);
+void* send_message(void* data);
+void* receive_message(void* data);
 
 // defn.
 int main()
 {
-    //TODO: configuration file
     // vars.
     int sfd;
     Address addy = create_addy(host, port, AF_INET);  // temp.
@@ -28,28 +28,24 @@ int main()
     // a loop. yes, this is a w̶h̶i̶l̶e̶ for loop. :)
     printf("Hosted on %s\n", addy.host);
 
-    Thread threadarr[max_threads];
+    Thread thread_arr[max_threads];
 
     for (;;) {
         // accept the new connection.
         int cfd = accept(sfd, &addy.addy, &addy.addysize);
         printf("debug: accepted new connection\n");
-           
-        // read next 128 bytes
-        char buf[128];
-        int bytesread = read(cfd, buf, 128);
-           
-        for (int i = 0; bytesread > i; i++) {
-            printf("%c", buf[i]);
-        }
-        printf("\ntotoal read bytes: %d\n", bytesread);
         
+        args = malloc(sizeof(struct arg_struct) * 1);
+        args->fd = cfd;
+
+        Thread send_thread = create_thread(receive_message, args, thread_arr, max_threads);
+
         // dc the client.
         close(cfd);
     }
 
     close(sfd);
-    clean_threads(threadarr, max_threads);
+    clean_threads(thread_arr, max_threads);
 
     return 0;
 }
@@ -71,15 +67,26 @@ int create_server_socket(Address *addy)
     return sfd;
 }
 
-void send_message(void* data)
+void* send_message(void* data)
 {
     struct arg_struct* args = data;
     const char* message = "message from the server";
 
-    for (;;)
-    {
-        printf("hello from server loop");
-        send(args->fd, message, strlen(message), 0);
-        sleep(1);
+    send(args->fd, message, strlen(message), 0);
+}
+
+void* receive_message(void* data)
+{
+    struct arg_struct* args = data;
+
+    char buf[bufsize];
+    int bytesread = read(args->fd, buf, bufsize);
+
+    for (int i = 0; bytesread > i; i++) {
+        printf("%c", buf[i]);
     }
+
+    printf("\ntotoal read bytes: %d\n", bytesread); // how long until this typo is noticed?
+
+    send_message(data);
 }
