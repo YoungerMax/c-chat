@@ -8,6 +8,18 @@
 #elif defined(_WIN32) || defined(_WIN64)
 #define WINDOWS
 
+// Windows incl.
+#include <winsock.h>
+#include <processthreadsapi.h>
+#include <synchapi.h>
+
+// Windows defn.
+#define close closesocket
+void sleep(unsigned int seconds) { Sleep(seconds * 1000); }
+int read(int fd, char* buf, int length) { return recv(fd, buf, length, 0); }
+
+typedef LPDWORD thread_id_t;
+
 #endif
 
 // incl.
@@ -26,15 +38,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#elif defined(WINDOWS)
-
-#include <winsock.h>
-#include <processthreadsapi.h>
-#include <synchapi.h>
-
-#define close closesocket
-void sleep(unsigned int seconds) { Sleep(seconds * 1000); }
-int read(int fd, char* buf, int length) { return recv(fd, buf, length, 0); }
+typedef pthread_t thread_id_t;
 
 #endif
 
@@ -58,15 +62,15 @@ typedef struct
     struct sockaddr addy;
     struct sockaddr_in addy_in;
     const char* host;
-    unsigned int addysize;
+    int addysize;
 } Address;
 
 typedef struct
 {
-    void (*target)(void*);
+    void*(*target)(void*);
     void* args;
     void* native;
-    unsigned long threadId;
+    thread_id_t threadId;
 } Thread;
 
 struct arg_struct
@@ -209,14 +213,14 @@ DWORD WINAPI win_thread_target(LPVOID p)
     return 0;
 }
 
-Thread create_thread(void (*func)(void*), void* args, Thread thread_arr[], size_t arr_size)
+Thread create_thread(void*(*func)(void*), void* args, Thread thread_arr[], size_t arr_size)
 {
     Thread thread = {
         .args = args,
         .target = func
     };
     
-    HANDLE threadHandle = CreateThread(NULL, 0, win_thread_target, &thread, 0, &thread.threadId);
+    HANDLE threadHandle = CreateThread(NULL, 0, win_thread_target, &thread, 0, thread.threadId);
     thread.native = (void*)&threadHandle;
 
     thread_arr[arr_size + 1] = thread;
