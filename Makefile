@@ -8,7 +8,7 @@ ifeq ($(OS), Windows_NT)
 	RUN_PREFIX=
 else
 	CC=clang
-	CC_ARGS=-std=c17
+	CC_ARGS=-std=c17 -pthread
 	CLIENT_BIN=client
 	SERVER_BIN=server
 	RM_CMD=rm
