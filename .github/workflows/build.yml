@@ -20,7 +20,7 @@ jobs:
         run: sudo apt install make
 
       - name: Build
-        run: make clean build
+        run: make build
   
   build-mac:
     name: Build (macOS)
@@ -37,7 +37,7 @@ jobs:
         run: brew install make
 
       - name: Build
-        run: make clean build
+        run: make build
   
   build-windows:
     name: Build (Windows)
@@ -54,4 +54,4 @@ jobs:
         run: choco install make
 
       - name: Build
-        run: make clean build
+        run: make build
