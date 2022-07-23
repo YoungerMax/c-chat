@@ -33,15 +33,18 @@ int main()
     for (;;) {
         // accept the new connection.
         int cfd = accept(sfd, &addy.addy, &addy.addysize);
-
-        args = malloc(sizeof(struct arg_struct) * 1);
-        args->fd = cfd;
-
-        Thread sendthread = create_thread(send_message, args, threadarr, max_threads);
+        printf("debug: accepted new connection\n");
+           
+        // read next 128 bytes
+        char buf[128];
+        int bytesread = read(cfd, buf, 128);
+           
+        for (int i = 0; bytesread > i; i++) {
+            printf("%c", buf[i]);
+        }
+        printf("\ntotoal read bytes: %d\n", bytesread);
         
-        free(args);
         // dc the client.
-        sleep(10);
         close(cfd);
     }
 
@@ -71,7 +74,6 @@ int create_server_socket(Address *addy)
 void send_message(void* data)
 {
     struct arg_struct* args = data;
-
     const char* message = "message from the server";
 
     for (;;)

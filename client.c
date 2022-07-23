@@ -33,23 +33,11 @@ int main()
         return -1;
     }
 
-    Thread threads[max_threads];
-
-    args = malloc(sizeof(struct arg_struct) * 1);
-    args->fd = cfd;
-
-    printf("after allocation");
-
-    Thread recthread = create_thread(receive_message, args, threads, max_threads);
-    
-    free(args);
-
-    scanf_s("waiting");
-
-    printf("\n");
+    // send message to server
+    const char* buf = "hello from the client! :)";
+    send(cfd, buf, strlen(buf), 0);
 
     close(cfd);
-    clean_threads(threads, max_threads);
     
     return 0;
 }

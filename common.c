@@ -1,10 +1,22 @@
+// OS-Specific defns.
+#ifdef __linux__ 
+#define LINUX
+
+#elif defined(__APPLE__)
+#define MACOS
+
+#elif defined(_WIN32) || defined(_WIN64)
+#define WINDOWS
+
+#endif
+
+// incl.
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
 
-#ifdef __linux__ 
-
-#define LINUX
+// OS-Specific incl.
+#if defined(LINUX) || defined(MACOS)
 
 #include <sys/socket.h>
 #include <netdb.h>
@@ -13,26 +25,15 @@
 #include <pthread.h>
 #include <unistd.h>
 
-#endif
-
-#if defined(_WIN32) || defined(_WIN64)
-
-#define WINDOWS
+#elif defined(WINDOWS)
 
 #include <winsock.h>
 #include <processthreadsapi.h>
 #include <synchapi.h>
 
 #define close closesocket
-
 void sleep(unsigned int seconds) { Sleep(seconds * 1000); }
 int read(int fd, char* buf, int length) { return recv(fd, buf, length, 0); }
-
-#endif
-
-#ifdef __APPLE__
-
-#define MACOS
 
 #endif
 
@@ -61,9 +62,8 @@ typedef struct
 
 typedef struct
 {
-    void* (*target)(void*);
+    void (*target)(void*);
     void* args;
-    int threadId;
     void* native;
 } Thread;
 
@@ -145,6 +145,7 @@ void clean_threads(Thread thread_arr[], size_t arr_size)
 
 #elif defined(WINDOWS)
 
+// SOCKETS //
 int create_socket()
 {
     // check if winsock is initialized.
@@ -190,14 +191,23 @@ Address create_addy(const char* host, int port, int family)
     return address;
 }
 
-Thread create_thread(void* (*func)(void*), void* args, Thread thread_arr[], size_t arr_size)
+// THREADING //
+DWORD WINAPI win_thread_target(LPVOID p)
+{
+    Thread* data = (Thread*)p;
+    data->target(data->args);
+
+    return 0;
+}
+
+Thread create_thread(void (*func)(void*), void* args, Thread thread_arr[], size_t arr_size)
 {
     Thread thread = {
         .args = args,
         .target = func
     };
     
-    HANDLE threadHandle = CreateThread(NULL, 0, func, args, 0, &thread.threadId);
+    HANDLE threadHandle = CreateThread(NULL, 0, win_thread_target, &thread, 0, NULL);
     thread.native = (void*)&threadHandle;
 
     thread_arr[arr_size + 1] = thread;
