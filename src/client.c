@@ -55,6 +55,9 @@ int main()
 
     Thread rec_thread = create_thread(receive_message, r_args, thread_arr, max_threads);
 
+    const char* input = get_input();
+    printf("you inputted: %s\n", input);
+
     send_message(r_args);
 
     sleep(20); // obviously a placeholder, segmentation fault afterwards

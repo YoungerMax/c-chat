@@ -81,6 +81,26 @@ struct recv_args
     int fd;
 } *r_args;
 
+const char* get_input() {
+    int input_buf_size = 0;
+    char* input_buf = malloc(sizeof(char) * input_buf_size);
+
+    while (1)
+    {
+        char next_char = getchar();
+        if (next_char == '\n') break;
+
+        input_buf_size++;
+        input_buf = realloc(input_buf, input_buf_size);
+        input_buf = strncat(input_buf, &next_char, 1);
+    }
+
+    printf("ibs: %d\n", input_buf_size);
+    printf("buf: %s\n", input_buf);
+
+    return input_buf;
+}
+
 #if defined(LINUX) || defined(MACOS)
 
 int create_socket()

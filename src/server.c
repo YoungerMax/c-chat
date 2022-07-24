@@ -85,10 +85,7 @@ int main()
 
 void* accept_connection(void* data)
 {
-    struct connection_args* c_args = data;
-    
-    // needed args
-    // sfd, addy, cfd array, cfd array size
+    struct connection_args* c_args = data;\
 
     for (;;)
     {
