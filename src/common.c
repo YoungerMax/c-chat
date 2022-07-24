@@ -122,11 +122,11 @@ int create_socket()
     return sfd;
 }
 
-Address create_addy(const char* host, int port, int family)
+Address create_addy(const char* host, uint16_t port, int family)
 {
     // vars.
     struct sockaddr_in addy = {
-        .sin_port = htons(port),
+        .sin_port = port,
         .sin_family = family
     };
 
@@ -208,7 +208,7 @@ int create_socket()
     return sfd;
 }
 
-Address create_addy(const char* host, u_short port, int family)
+Address create_addy(const char* host, uint16_t port, int family)
 {
     // vars.
     struct sockaddr_in addy = {

@@ -5,16 +5,18 @@
 
 // decl.
 #define max_connections 10
+#define max_threads 10
 
-const unsigned int max_threads = 10;
+// const unsigned int max_threads = 10;
 unsigned int keep_running = 1;
 
-// TODO: don't have this as a global var.
+// TODO: don't have these as a global var.
 volatile int connections[max_connections];
+Thread thread_arr[max_threads];
 
 void detect_exit(int signal);
 int create_server_socket(Address *addy);
-void* send_message(void* data);
+void send_message(const char* msg, int sfd);
 void* receive_message(void* data);
 void* accept_connection(void* data);
 
@@ -46,8 +48,6 @@ int main()
     listen(sfd, max_connections);
 
     printf("Hosted on %s:%d\n", addy.host, addy.addy_in.sin_port);
-
-    Thread thread_arr[max_threads];
 
     // a loop. yes, this is a w̶h̶i̶l̶e̶ for loop. :)
     //TODO: make different tasks split up across different loops in different threads rather than one big loop
@@ -85,7 +85,7 @@ int main()
 
 void* accept_connection(void* data)
 {
-    struct connection_args* c_args = data;\
+    struct connection_args* c_args = data;
 
     for (;;)
     {
@@ -100,34 +100,41 @@ void* accept_connection(void* data)
         
         connections[connect_size+1] = cfd;
 
+        r_args = malloc(sizeof(struct recv_args) * 1);
+        r_args->fd = cfd;
+
+        Thread client_thread = create_thread(receive_message, r_args, thread_arr, max_threads);
+
         printf("accepted new connection %d\n", connect_size+1);
     }
 
     return 0;
 }
 
-void* send_message(void* data)
+void send_message(const char* msg, int sfd)
 {
-    struct recv_args* args = data;
     const char* message = "message from the server";
 
-    send(args->fd, message, strlen(message), 0);
-
-    return 0;
+    send(sfd, message, strlen(message), 0);
 }
 
 void* receive_message(void* data)
 {
     struct recv_args* args = data;
 
-    char buf[bufsize];
-    int bytesread = read(args->fd, buf, bufsize);
+    for (;;)
+    {
+        char buf[bufsize];
+        int bytesread = read(args->fd, buf, bufsize);
 
-    for (int i = 0; bytesread > i; i++) {
-        printf("%c", buf[i]);
+        for (int i = 0; bytesread > i; i++) {
+            printf("%c", buf[i]);
+        }
+
+        printf("\ntotal read bytes: %d\n", bytesread);
+
+        // TODO: send the message to all other clients
     }
-
-    printf("\ntotal read bytes: %d\n", bytesread);
 
     return 0;
 }

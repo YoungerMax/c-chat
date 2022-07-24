@@ -24,14 +24,11 @@ void* receive_message(void* data)
     return 0; // clang gives warnings if you don't return anything
 }
 
-void* send_message(void* data)
+void send_message(const char* msg, void* data)
 {
     struct recv_args* r_args = data;
-    const char* message = "message from the client";
 
-    send(r_args->fd, message, strlen(message), 0);
-
-    return 0; // clang gives warnings if you don't return anything
+    send(r_args->fd, msg, strlen(msg), 0);
 }
 
 // defn.
@@ -41,7 +38,7 @@ Address get_addy_from_user()
     const char* user_host = get_input(-1);
 
     printf("Host port: ");
-    const u_short user_port = atoi(get_input(5)); // TODO: make sure get_input is actually an int
+    uint16_t user_port = atoi(get_input(5)); // TODO: make sure get_input is actually an int
 
     return create_addy(user_host, user_port, AF_INET);
 }
@@ -69,7 +66,7 @@ int main()
 
     Thread rec_thread = create_thread(receive_message, r_args, thread_arr, max_threads);
 
-    send_message(r_args);
+    send_message("new message from the client", r_args);
 
     sleep(20); // obviously a placeholder, segmentation fault afterwards
 
