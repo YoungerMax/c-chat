@@ -35,18 +35,32 @@ void* send_message(void* data)
 }
 
 // defn.
+Address get_addy_from_user()
+{
+    printf("Host address: ");
+    const char* user_host = get_input(-1);
+
+    printf("Host port: ");
+    const u_short user_port = atoi(get_input(5)); // TODO: make sure get_input is actually an int
+
+    return create_addy(user_host, user_port, AF_INET);
+}
+
 int main()
 {
     int cfd = create_socket();
-    Address addy = create_addy(host, port, AF_INET);  // connect to address
+    Address addy = get_addy_from_user();  // connect to address
+
+    printf("Connecting to %s:%hu\n", addy.host, addy.addy_in.sin_port);
 
     // connect to the server.
     if (0 > connect(cfd, &addy.addy, addy.addysize))
     {
+        printf("Failed to connect to %s:%hu\n", addy.host, addy.addy_in.sin_port);
         return -1;
     }
 
-    printf("Connected to %s:%d\n", addy.host, addy.addy_in.sin_port);
+    printf("Connected to %s:%hu\n", addy.host, addy.addy_in.sin_port);
 
     Thread thread_arr[max_threads];
 
@@ -54,9 +68,6 @@ int main()
     r_args->fd = cfd;
 
     Thread rec_thread = create_thread(receive_message, r_args, thread_arr, max_threads);
-
-    const char* input = get_input();
-    printf("you inputted: %s\n", input);
 
     send_message(r_args);
 

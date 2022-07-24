@@ -81,22 +81,24 @@ struct recv_args
     int fd;
 } *r_args;
 
-const char* get_input() {
+const char* get_input(int limit)
+{
     int input_buf_size = 0;
     char* input_buf = malloc(sizeof(char) * input_buf_size);
 
-    while (1)
+    while (0 > limit || limit > input_buf_size)
     {
-        char next_char = getchar();
-        if (next_char == '\n') break;
+        const char next_char = getchar();
+
+        if (next_char == '\n') {
+            break;
+        }
 
         input_buf_size++;
         input_buf = realloc(input_buf, input_buf_size);
-        input_buf = strncat(input_buf, &next_char, 1);
-    }
 
-    printf("ibs: %d\n", input_buf_size);
-    printf("buf: %s\n", input_buf);
+        input_buf[input_buf_size-1] = next_char;
+    }
 
     return input_buf;
 }
@@ -206,11 +208,11 @@ int create_socket()
     return sfd;
 }
 
-Address create_addy(const char* host, int port, int family)
+Address create_addy(const char* host, u_short port, int family)
 {
     // vars.
     struct sockaddr_in addy = {
-        .sin_port = htons(port),
+        .sin_port = port,
         .sin_family = family,
         .sin_addr.s_addr = inet_addr(host)
     };
