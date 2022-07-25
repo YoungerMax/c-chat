@@ -1,3 +1,6 @@
+// Misc defns.
+#define bufsize 2048 // this runs out quick, error "broken pipe"
+
 // OS-Specific defns.
 #ifdef __linux__ 
 // OS is Linux
@@ -29,13 +32,14 @@ typedef LPDWORD thread_id_t;
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 
 // OS-Specific incl.
 #if defined(LINUX) || defined(MACOS)
 
 #include <sys/socket.h>
 #include <netdb.h>
-#include <err.h>
+#include <err.h> //TODO: use
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <unistd.h>
@@ -44,10 +48,6 @@ typedef LPDWORD thread_id_t;
 typedef pthread_t thread_id_t;
 
 #endif
-
-//#define uint16_t unsigned short // dumb fix for now because max value of short is 65535
-
-const unsigned int bufsize = 2048; // this runs out quick, error "broken pipe"
 
 typedef struct
 {
@@ -81,13 +81,18 @@ struct recv_args
     int fd;
 } *r_args;
 
-const char* get_input(int limit)
+//TODO: refactor
+const char* get_input(int limit, const char* prompt)
 {
+    printf(prompt);
+    fflush(stdout);
+
     int input_buf_size = 0;
     char* input_buf = malloc(sizeof(char) * input_buf_size);
 
     while (0 > limit || limit > input_buf_size)
     {
+        printf("gello");
         const char next_char = getchar();
 
         if (next_char == '\n') {

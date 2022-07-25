@@ -50,23 +50,12 @@ int main()
     printf("Hosted on %s:%d\n", addy.host, addy.addy_in.sin_port);
 
     // a loop. yes, this is a w̶h̶i̶l̶e̶ for loop. :)
-    //TODO: make different tasks split up across different loops in different threads rather than one big loop
 
     c_args = malloc(sizeof(struct connection_args) * 1);
     c_args->sfd = sfd;
     c_args->addy = addy;
 
     Thread accept_thread = create_thread(accept_connection, c_args, thread_arr, max_threads);
-
-    // for (;;) {
-    //     args = malloc(sizeof(struct recv_args) * 1);
-    //     args->fd = cfd;
-
-    //     Thread rec_thread = create_thread(receive_message, args, thread_arr, max_threads);
-
-    //     // dc the client.
-    //     close(cfd);
-    // }
 
     while (keep_running) {
         fflush(stdout);
@@ -111,6 +100,13 @@ void* accept_connection(void* data)
     return 0;
 }
 
+void on_disconnect(int cfd)
+{
+    printf("client %d has disconnected from the server\n", cfd);
+    
+    //TODO: deallocate from connections array
+}
+
 void send_message(const char* msg, int sfd)
 {
     const char* message = "message from the server";
@@ -127,6 +123,11 @@ void* receive_message(void* data)
         char buf[bufsize];
         int bytesread = read(args->fd, buf, bufsize);
 
+        // check if client has dc'd
+        if (bytesread == 0) {
+            break;
+        }
+    
         for (int i = 0; bytesread > i; i++) {
             printf("%c", buf[i]);
         }
@@ -136,8 +137,12 @@ void* receive_message(void* data)
         // TODO: send the message to all other clients
     }
 
+    on_disconnect(args->fd);
+
     return 0;
 }
+
+//TODO: implement delete thread method that deallocated thread from thread array
 
 int create_server_socket(Address *addy)
 {
