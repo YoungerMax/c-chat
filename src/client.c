@@ -42,7 +42,7 @@ void send_message(const char* msg, void* data)
 }
 
 // defn.
-Address get_addy_from_user()
+address_t get_addy_from_user()
 {
     //TODO: check that address and port are actually valid addresses and ports
     const char* user_host;
@@ -59,7 +59,7 @@ Address get_addy_from_user()
     return create_addy(user_host, user_port, AF_INET);
 }
 
-void connect_to_server(int cfd, Address addy)
+void connect_to_server(int cfd, address_t addy)
 {
     printf("Connecting to %s:%hu\n", addy.host, addy.addy_in.sin_port);
 
@@ -75,16 +75,16 @@ void connect_to_server(int cfd, Address addy)
 int main()
 {
     int cfd = create_socket();
-    Address addy = create_addy("127.0.0.1", 12345, AF_INET); // get_addy_from_user();  // connect to address
+    address_t addy = create_addy("127.0.0.1", 12345, AF_INET); // get_addy_from_user();  // connect to address
 
     connect_to_server(cfd, addy);
 
-    Thread thread_arr[max_threads];
+    thread_t thread_arr[max_threads];
 
     r_args = malloc(sizeof(struct recv_args) * 1);
     r_args->fd = cfd;
 
-    Thread rec_thread = create_thread(receive_message, r_args, thread_arr, max_threads);
+    thread_t rec_thread = create_thread(receive_message, r_args, thread_arr, max_threads);
 
     size_t tmp = bufsize;
 

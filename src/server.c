@@ -12,18 +12,18 @@ unsigned int keep_running = 1;
 
 // TODO: don't have these as a global var.
 volatile int connections[max_connections];
-Thread thread_arr[max_threads];
+thread_t thread_arr[max_threads];
 
 void detect_exit(int signal);
-int create_server_socket(Address *addy);
-void send_message(const char* msg, int sfd);
+int create_server_socket(address_t *addy);
+void send_message(const char* msg, int fd, int all);
 void* receive_message(void* data);
 void* accept_connection(void* data);
 
 struct connection_args
 {
     int sfd;
-    Address addy;
+    address_t addy;
 } *c_args;
 
 // defn.
@@ -33,7 +33,7 @@ int main()
 {
     // vars.
     int sfd;
-    Address addy = create_addy(host, port, AF_INET);  // temp.
+    address_t addy = create_addy(host, port, AF_INET);  // temp.
 
     // insns.
     // create exit handler
@@ -55,7 +55,7 @@ int main()
     c_args->sfd = sfd;
     c_args->addy = addy;
 
-    Thread accept_thread = create_thread(accept_connection, c_args, thread_arr, max_threads);
+    thread_t accept_thread = create_thread(accept_connection, c_args, thread_arr, max_threads);
 
     while (keep_running) {
         fflush(stdout);
@@ -81,20 +81,21 @@ void* accept_connection(void* data)
         int cfd;
 
         size_t connect_size = sizeof(connections)/sizeof(connections[0]);
+        size_t connect_count = count_array(connections, connect_size);
         
         if (0 > (cfd = accept(c_args->sfd, &c_args->addy.addy,  &c_args->addy.addysize))) {
             printf("Could not accept connection %d\n", connect_size+1);
             continue;
         }
-        
-        connections[connect_size+1] = cfd;
+
+        connections[connect_count] = cfd;
 
         r_args = malloc(sizeof(struct recv_args) * 1);
         r_args->fd = cfd;
 
-        Thread client_thread = create_thread(receive_message, r_args, thread_arr, max_threads);
+        thread_t client_thread = create_thread(receive_message, r_args, thread_arr, max_threads);
 
-        printf("accepted new connection %d\n", connect_size+1);
+        printf("accepted new connection %d\n", connect_size);
     }
 
     return 0;
@@ -107,11 +108,26 @@ void on_disconnect(int cfd)
     //TODO: deallocate from connections array
 }
 
-void send_message(const char* msg, int sfd)
+void send_message(const char* msg, int fd, int all)
 {
-    const char* message = "message from the server";
+    if (all)
+    {
+        size_t connect_size = sizeof(connections)/sizeof(connections[0]);
 
-    send(sfd, message, strlen(message), 0);
+        for (size_t i = 0; i < count_array(connections, connect_size); i++)
+        {
+            printf("in send message loop");
+
+            // don't send message back to original client
+            if (connections[i] == fd) continue;
+
+            send(connections[i], msg, strlen(msg), 0);
+        }
+
+        return;
+    }
+
+    send(fd, msg, strlen(msg), 0);
 }
 
 void* receive_message(void* data)
@@ -135,6 +151,7 @@ void* receive_message(void* data)
         printf("\ntotal read bytes: %d\n", bytesread);
 
         // TODO: send the message to all other clients
+        send_message(buf, args->fd, 1);
     }
 
     on_disconnect(args->fd);
@@ -144,7 +161,7 @@ void* receive_message(void* data)
 
 //TODO: implement delete thread method that deallocated thread from thread array
 
-int create_server_socket(Address *addy)
+int create_server_socket(address_t *addy)
 {
     // vars.
     int sfd;
