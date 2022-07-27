@@ -1,3 +1,3 @@
 error handling: assignee aodhfionn
 
-implement more for user struct later
+split common across two files for unix and win32

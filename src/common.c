@@ -33,6 +33,7 @@ typedef LPDWORD thread_id_t;
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
+#include <signal.h>
 
 // OS-Specific incl.
 #if defined(LINUX) || defined(MACOS)
@@ -52,14 +53,15 @@ typedef pthread_t thread_id_t;
 typedef struct
 {
     const char* name;
-    //TODO: implement more here
+    int cfd;
+    unsigned int id;
 } user_t;
 
 typedef struct
 {
     const char* content;
 
-    // timestamp, sender
+    // timestamp
 } message_t;
 
 typedef struct
@@ -80,7 +82,14 @@ typedef struct
 
 struct recv_args
 {
-    int fd;
+    user_t user;
+    int sfd;
+    
+    //error: not a modifiable lvalue if given size limit (const char message[bufsize])
+    //       find a workaround for this
+    const char* message;
+
+    // make message a message_t
 } *r_args;
 
 //TODO: refactor
@@ -110,30 +119,22 @@ const char* get_input(int limit, const char* prompt)
     return input_buf;
 }
 
-void print_array(void* array[], size_t size)
-{
-    for (size_t i = 0; i < size; i++)
-    {
-        printf("%d", array[i]);
-    }
-    printf("\n");
-}
+// placeholder function
 
-
-// currently for ints only
-size_t count_array(void* array[], size_t size)
+size_t count_users(user_t array[], size_t size, const char* msg)
 {
-    size_t count;
+    size_t count = 0;
     for (int i = 0; i < size; i++)
     {
-        if (!array[i]) count++;
+        if (array[i].cfd) count++;
     }
 
-    printf("%d, ", count);
-    print_array(array, size);
+    printf("count: %d", count);
+    printf(" from %s\n", msg);
 
     return count;
 }
+
 
 #if defined(LINUX) || defined(MACOS)
 
@@ -149,7 +150,7 @@ int create_socket(void)
     }
 
     // enable address reuse.
-    setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, (void*)1, sizeof(int));
+    // setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, (void*)1, sizeof(int));
 
     return sfd;
 }
@@ -187,8 +188,6 @@ thread_t create_thread(void*(*func)(void*), void* args, thread_t thread_arr[], s
 
     int err = pthread_create(&thread_id, NULL, func, args);
 
-    size_t thread_count = count_array(thread_arr, arr_size);
-
     if (err != 0)
     {
         printf("thread creation error");
@@ -201,8 +200,8 @@ thread_t create_thread(void*(*func)(void*), void* args, thread_t thread_arr[], s
     thread.threadId = thread_id;
 
     //TODO: make this safe
-    thread_arr[thread_count] = thread;
-    printf("thread %d created\n", thread_count);
+    thread_arr[arr_size] = thread;
+    printf("thread %d created\n", arr_size);
 
     return thread;
 }
@@ -237,6 +236,8 @@ int create_socket(void)
     }
 
     // enable address reuse.
+
+    // probably don't have to cast 1 to a void*
     setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, (void*)1, sizeof(int));
 
     return sfd;

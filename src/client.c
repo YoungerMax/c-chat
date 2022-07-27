@@ -5,44 +5,89 @@
 
 // decl.
 const unsigned int max_threads = 2;
+unsigned int keep_running = 1;
 
-// const char* get_input(const char* prompt)
-// {
-//     printf(prompt);
+void* receive_message(void* data);
+void send_message(const char* msg, void* data);
+address_t get_addy_from_user(void);
+void connect_to_server(int cfd, address_t addy);
+void on_sigint(int signal) { keep_running = 0; }
 
-//     char* buffer = malloc(sizeof(char) * bufsize);
-//     fgets(buffer, bufsize, stdin);
+struct client_recv_args
+{
+    int cfd;
+} *cr_args;
 
-//     return buffer;
-// }
+int main()
+{
+    int cfd = create_socket();
+    address_t addy = create_addy("127.0.0.1", 12345, AF_INET); // get_addy_from_user();  // connect to address
+    signal(SIGINT, on_sigint);
+
+    connect_to_server(cfd, addy);
+
+    thread_t thread_arr[max_threads];
+
+    cr_args = malloc(sizeof(struct client_recv_args) * 1);
+    cr_args->cfd = cfd;
+
+    thread_t rec_thread = create_thread(receive_message, cr_args, thread_arr, max_threads);
+
+    size_t tmp = bufsize;
+
+    while (keep_running)  {
+
+        //TODO: make all this work with get_input()
+        printf(">> ");
+
+        char message[bufsize];
+        char* buffer = message;
+
+        // warning: implicit declaration of function 'getline'
+        size_t characters = getline(&buffer, &tmp, stdin);
+
+        send_message(message, r_args);
+    }
+    
+    close(cfd);
+    clean_threads(thread_arr, max_threads);
+    free(r_args);
+    
+    return 0;
+}
 
 void* receive_message(void* data)
 {
-    struct recv_args* args = data;
+    struct client_recv_args* args = data;
     char buf[bufsize];
+
+    r_args = malloc(sizeof(struct recv_args) * 1);
 
     for (;;)
     {
-        int bytesread = read(r_args->fd, buf, bufsize);
-        
-        for (int i = 0; bytesread > i; i++)
-        {
-            printf("%c", buf[i]);
-        }
+        int bytesread = read(args->cfd, r_args, sizeof(r_args));
+
+        // print out the buffer, un-ugly this
+        printf("\n%s:", r_args->user.name);
+        for (int i = 0; bytesread > i; i++) printf("%c", buf[i]);
+        printf("\n");
+
+        fflush(stdout);
     }
 
-    return 0; // clang gives warnings if you don't return anything
+    free(r_args);
+    return 0;
 }
 
 void send_message(const char* msg, void* data)
 {
     struct recv_args* r_args = data;
 
-    send(r_args->fd, msg, strlen(msg), 0);
+    send(r_args->user.cfd, msg, strlen(msg), 0);
 }
 
 // defn.
-address_t get_addy_from_user()
+address_t get_addy_from_user(void)
 {
     //TODO: check that address and port are actually valid addresses and ports
     const char* user_host;
@@ -70,44 +115,4 @@ void connect_to_server(int cfd, address_t addy)
     }
 
     printf("Connected to %s:%hu\n", addy.host, addy.addy_in.sin_port);
-}
-
-int main()
-{
-    int cfd = create_socket();
-    address_t addy = create_addy("127.0.0.1", 12345, AF_INET); // get_addy_from_user();  // connect to address
-
-    connect_to_server(cfd, addy);
-
-    thread_t thread_arr[max_threads];
-
-    r_args = malloc(sizeof(struct recv_args) * 1);
-    r_args->fd = cfd;
-
-    thread_t rec_thread = create_thread(receive_message, r_args, thread_arr, max_threads);
-
-    size_t tmp = bufsize;
-
-    for (;;)  {
-
-        //TODO: make all this work with get_input()
-        printf(">> ");
-
-        char message[bufsize];
-        char* buffer = message;
-
-        // warning: implicit declaration of function 'getline'
-        size_t characters = getline(&buffer, &tmp, stdin);
-
-        send_message(message, r_args);
-
-    }
-
-    sleep(20); // obviously a placeholder, segmentation fault afterwards
-
-    free(r_args);
-    close(cfd);
-    clean_threads(thread_arr, max_threads);
-    
-    return 0;
 }

@@ -18,6 +18,7 @@ endif
 
 build: client server
 clean: cleanclient cleanserver
+test: testserver testclient
 
 # client
 client:
@@ -38,3 +39,11 @@ runserver: cleanserver server
 
 cleanserver:
 	-$(RM_CMD) $(SERVER_BIN)
+
+## testing
+
+testserver:
+	$(RUN_PREFIX)test/server.sh
+
+testclient:
+	$(RUN_PREFIX)test/client.sh
